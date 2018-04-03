@@ -23,8 +23,8 @@ import com.yydcdut.rxmarkdown.syntax.SyntaxFactory;
 import com.yydcdut.rxmarkdown.syntax.edit.EditFactory;
 import com.yydcdut.rxmarkdown.syntax.text.TextFactory;
 
-import rx.Observable;
-import rx.functions.Func1;
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 
 /**
  * RxMarkdown for TextView:
@@ -119,9 +119,9 @@ public class RxMarkdown {
     public Observable<CharSequence> intoObservable() {
         if (mContent != null) {
             return Observable.just(mContent)
-                    .map(new Func1<String, CharSequence>() {
+                    .map(new Function<String, CharSequence>() {
                         @Override
-                        public CharSequence call(String s) {
+                        public CharSequence apply(final String s) throws Exception {
                             if (mSyntaxFactory != null) {
                                 RxMDConfiguration config = getRxMDConfiguration();
                                 long time = System.currentTimeMillis();
@@ -136,9 +136,9 @@ public class RxMarkdown {
                     });
         } else {
             return Observable.just(mRxMDEditText)
-                    .map(new Func1<RxMDEditText, CharSequence>() {
+                    .map(new Function<RxMDEditText, CharSequence>() {
                         @Override
-                        public CharSequence call(RxMDEditText rxMDEditText) {
+                        public CharSequence apply(final RxMDEditText rxMDEditText) throws Exception {
                             if (mSyntaxFactory == null) {
                                 return rxMDEditText.getText();
                             }

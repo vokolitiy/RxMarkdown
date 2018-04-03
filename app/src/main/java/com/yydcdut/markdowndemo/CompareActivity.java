@@ -18,7 +18,8 @@ import com.yydcdut.rxmarkdown.RxMarkdown;
 import com.yydcdut.rxmarkdown.syntax.edit.EditFactory;
 import com.yydcdut.rxmarkdown.syntax.text.TextFactory;
 
-import rx.Subscriber;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 
 /**
  * Created by yuyidong on 16/7/23.
@@ -90,18 +91,25 @@ public class CompareActivity extends AppCompatActivity implements TextWatcher {
                 .intoObservable()
 //                .subscribeOn(Schedulers.computation())
 //                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<CharSequence>() {
+                .subscribe(new Observer<CharSequence>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(final Disposable d) {
+
                     }
 
                     @Override
-                    public void onError(Throwable e) {
-                    }
-
-                    @Override
-                    public void onNext(CharSequence charSequence) {
+                    public void onNext(final CharSequence charSequence) {
                         mRxMDTextView.setText(charSequence, TextView.BufferType.SPANNABLE);
+                    }
+
+                    @Override
+                    public void onError(final Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
                     }
                 });
     }

@@ -24,9 +24,10 @@ import com.yydcdut.rxmarkdown.loader.RxMDImageLoader;
 import com.yydcdut.rxmarkdown.syntax.text.TextFactory;
 import com.yydcdut.rxmarkdown.theme.ThemeSunburst;
 
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by yuyidong on 16/5/11.
@@ -95,18 +96,25 @@ public class ShowActivity extends AppCompatActivity {
                 .intoObservable()
                 .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<CharSequence>() {
+                .subscribe(new Observer<CharSequence>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(final Disposable d) {
+
                     }
 
                     @Override
-                    public void onError(Throwable e) {
-                    }
-
-                    @Override
-                    public void onNext(CharSequence charSequence) {
+                    public void onNext(final CharSequence charSequence) {
                         textView.setText(charSequence, TextView.BufferType.SPANNABLE);
+                    }
+
+                    @Override
+                    public void onError(final Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
                     }
                 });
     }

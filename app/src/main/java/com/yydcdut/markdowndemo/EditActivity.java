@@ -29,11 +29,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by yuyidong on 16/7/23.
@@ -44,7 +44,7 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
     private FloatingActionButton mFloatingActionButton;
 
     private Observable<CharSequence> mObservable;
-    private Subscription mSubscription;
+    private Disposable mDisposable;
     private HorizontalEditScrollView mHorizontalEditScrollView;
     private int mShortestDistance = -1;
 
@@ -88,22 +88,26 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
                 .subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread());
         final long time = System.currentTimeMillis();
-        mSubscription = mObservable
-                .subscribe(new Subscriber<CharSequence>() {
+        mObservable.subscribe(new Observer<CharSequence>() {
                     @Override
-                    public void onCompleted() {
+                    public void onSubscribe(final Disposable d) {
 
                     }
 
                     @Override
-                    public void onError(Throwable e) {
+                    public void onNext(final CharSequence charSequence) {
+                        Snackbar.make(mFloatingActionButton, (System.currentTimeMillis() - time) + "", Snackbar.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(final Throwable e) {
                         Snackbar.make(mFloatingActionButton, e.getMessage(), Snackbar.LENGTH_SHORT).show();
                         e.printStackTrace();
                     }
 
                     @Override
-                    public void onNext(CharSequence charSequence) {
-                        Snackbar.make(mFloatingActionButton, (System.currentTimeMillis() - time) + "", Snackbar.LENGTH_SHORT).show();
+                    public void onComplete() {
+
                     }
                 });
 
@@ -145,29 +149,33 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_enable) {
             final long time = System.currentTimeMillis();
-            mSubscription = mObservable
-                    .subscribe(new Subscriber<CharSequence>() {
-                        @Override
-                        public void onCompleted() {
+            mObservable.subscribe(new Observer<CharSequence>() {
+                @Override
+                public void onSubscribe(final Disposable d) {
 
-                        }
+                }
 
-                        @Override
-                        public void onError(Throwable e) {
-                            Snackbar.make(mFloatingActionButton, e.getMessage(), Snackbar.LENGTH_SHORT).show();
-                            e.printStackTrace();
-                        }
+                @Override
+                public void onNext(final CharSequence charSequence) {
+                    Snackbar.make(mFloatingActionButton, (System.currentTimeMillis() - time) + "", Snackbar.LENGTH_SHORT).show();
+                }
 
-                        @Override
-                        public void onNext(CharSequence charSequence) {
-                            Snackbar.make(mFloatingActionButton, (System.currentTimeMillis() - time) + "", Snackbar.LENGTH_SHORT).show();
-                        }
-                    });
+                @Override
+                public void onError(final Throwable e) {
+                    Snackbar.make(mFloatingActionButton, e.getMessage(), Snackbar.LENGTH_SHORT).show();
+                    e.printStackTrace();
+                }
+
+                @Override
+                public void onComplete() {
+
+                }
+            });
             return true;
         } else if (id == R.id.action_disable) {
-            if (mSubscription != null) {
-                mSubscription.unsubscribe();
-                mSubscription = null;
+            if (mDisposable != null) {
+                mDisposable.dispose();
+                mDisposable = null;
                 mEditText.clear();
             }
             return true;

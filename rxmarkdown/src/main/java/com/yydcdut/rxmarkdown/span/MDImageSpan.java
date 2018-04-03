@@ -35,11 +35,12 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * image grammar span
@@ -127,46 +128,53 @@ public class MDImageSpan extends DynamicDrawableSpan {
 
     private void submitRequest() {
         mIsRequestSubmitted = true;
-        Observable.just(mImageUri)
-                .observeOn(Schedulers.io())
-                .map(new Func1<String, byte[]>() {
-                    @Override
-                    public byte[] call(String url) {
-                        byte[] bytes = null;
-                        try {
-                            bytes = mRxMDImageLoader.loadSync(getUrl(url));
-                        } catch (IOException e) {
-                            e.printStackTrace();
+        if (mImageUri != null){
+            Observable.just(mImageUri)
+                    .observeOn(Schedulers.io())
+                    .map(new Function<String, byte[]>() {
+                        @Override
+                        public byte[] apply(final String url) throws Exception {
+                            byte[] bytes = null;
+                            try {
+                                bytes = mRxMDImageLoader.loadSync(getUrl(url));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            return bytes;
                         }
-                        return bytes;
-                    }
-                })
-                .map(new Func1<byte[], Drawable>() {
-                    @Override
-                    public Drawable call(byte[] bytes) {
-                        if (bytes == null) {
-                            return mPlaceHolder;
+                    })
+                    .map(new Function<byte[], Drawable>() {
+                        @Override
+                        public Drawable apply(final byte[] bytes) throws Exception {
+                            if (bytes == null) {
+                                return mPlaceHolder;
+                            }
+                            return getDrawable(bytes);
                         }
-                        return getDrawable(bytes);
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Drawable>() {
-                    @Override
-                    public void onCompleted() {
+                    })
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Observer<Drawable>() {
+                        @Override
+                        public void onSubscribe(final Disposable d) {
 
-                    }
+                        }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                    }
+                        @Override
+                        public void onNext(final Drawable drawable) {
+                            setImageWithIntrinsicBounds(drawable);
+                        }
 
-                    @Override
-                    public void onNext(Drawable drawable) {
-                        setImageWithIntrinsicBounds(drawable);
-                    }
-                });
+                        @Override
+                        public void onError(final Throwable e) {
+
+                        }
+
+                        @Override
+                        public void onComplete() {
+
+                        }
+                    });
+        }
     }
 
     private void setImageWithIntrinsicBounds(@NonNull Drawable drawable) {
